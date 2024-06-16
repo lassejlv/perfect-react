@@ -15,6 +15,7 @@ import ResetPassword from "./pages/reset-password.tsx";
 const routes = createBrowserRouter([
   {
     path: "/reset-password/:token",
+    // @ts-expect-error: Unreachable code error
     element: <ResetPassword />,
   },
   {

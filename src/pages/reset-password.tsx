@@ -1,4 +1,3 @@
-import React from "react";
 import useFetch from "react-fetch-hook";
 import { useNavigate, useParams } from "react-router-dom";
 import Spinner from "../components/Spinner";
