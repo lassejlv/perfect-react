@@ -2,9 +2,10 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { RegisterSchema } from "../utils/zod";
 import { User } from "../.prismo/types";
-import { getCookie, setCookie } from "hono/cookie";
+import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import jwt from "jsonwebtoken";
 import db from "../utils/db";
+import { auth } from "../utils/auth";
 
 const router = new Hono();
 
@@ -86,10 +87,21 @@ router.post("/login", zValidator("json", RegisterSchema.pick({ email: true, pass
   }
 });
 
+router.delete("/logout", async (c) => {
+  const session = await auth(c);
+  if (!session) return c.json({ error: "Unauthorized" }, 401);
+
+  deleteCookie(c, "session_token", {
+    path: "/",
+    httpOnly: true,
+    secure: true,
+  });
+
+  return c.json({ message: "User logged out" });
+});
+
 router.get("/session", async (c) => {
   const token = getCookie(c, "session_token");
-  console.log(token);
-
   if (!token) return c.json({ error: "Unauthorized" }, 401);
 
   const validJwtToken = (await jwt.verify(token, process.env.JWT_SECRET!)) as { id: number };

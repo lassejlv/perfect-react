@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "bunx concurrently \"bun run dev:api\" \"bun run dev:web\"",
     "dev:api": "bun --watch app.ts",
+    "dev:web": "vite",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
@@ -19,6 +20,7 @@
     "eslint-plugin-react-compiler": "^0.0.0-experimental-51a85ea-20240601",
     "hono": "^4.4.6",
     "jsonwebtoken": "^9.0.2",
+    "lucide-react": "^0.395.0",
     "prismoo": "^0.1.2",
     "react": "^19.0.0-beta-26f2496093-20240514",
     "react-dom": "^19.0.0-beta-26f2496093-20240514",

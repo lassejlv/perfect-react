@@ -3,9 +3,17 @@ import Container from "../components/Container";
 import { RegisterSchema } from "../../utils/zod";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import useAuth from "../hooks/useAuth";
+import Spinner from "../components/Spinner";
 
 export default function Login() {
   const navigate = useNavigate();
+
+  // Check if the user is already logged in
+  const { loading, error } = useAuth();
+
+  if (loading) return <Spinner />;
+  if (!error) navigate("/dashboard");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

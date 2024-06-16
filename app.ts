@@ -16,7 +16,7 @@ app.get("*", serveStatic({ root: "./dist" }));
 app.get("*", serveStatic({ path: "./dist/index.html" }));
 
 const server = Bun.serve({
-  port: 5001,
+  port: process.env.PORT,
   fetch: app.fetch,
 });
 
