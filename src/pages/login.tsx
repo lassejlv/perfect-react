@@ -1,8 +1,12 @@
 import React from "react";
 import Container from "../components/Container";
 import { RegisterSchema } from "../../utils/zod";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export default function Login() {
+  const navigate = useNavigate();
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -22,8 +26,8 @@ export default function Login() {
 
     if (!response.ok) return console.error("An error occurred");
 
-    const json = await response.json();
-    console.log(json);
+    toast.success("Login successful");
+    navigate("/dashboard");
   };
 
   return (
