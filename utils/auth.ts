@@ -1,8 +1,8 @@
 import { Context } from "hono";
 import { getCookie } from "hono/cookie";
+import { User } from "../.prismo/types";
 import jwt from "jsonwebtoken";
 import db from "./db";
-import { User } from "../.prismo/types";
 
 export const auth = async (c: Context): Promise<boolean> => {
   try {

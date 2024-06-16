@@ -1,12 +1,9 @@
-import toast from "react-hot-toast";
-
-export const logout = async () => {
+export const Logout = async (): Promise<boolean> => {
   const response = await fetch("/api/logout", {
     method: "DELETE",
   });
 
-  if (!response.ok) return toast.error("Already logged out");
+  if (!response.ok) return false;
 
-  const json = await response.json();
-  return toast.success(json.message);
+  return true;
 };

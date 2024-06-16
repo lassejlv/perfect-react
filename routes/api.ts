@@ -6,6 +6,8 @@ import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import jwt from "jsonwebtoken";
 import db from "../utils/db";
 import { auth } from "../utils/auth";
+import { sendEmail } from "../utils/email";
+import { z } from "zod";
 
 const router = new Hono();
 
@@ -99,6 +101,99 @@ router.delete("/logout", async (c) => {
 
   return c.json({ message: "User logged out" });
 });
+
+router.post("/forgot-password", zValidator("json", RegisterSchema.pick({ email: true })), async (c) => {
+  const validated = c.req.valid("json");
+  if (!validated) return c.json({ error: "Invalid request" }, 400);
+
+  const session = await auth(c);
+  if (session) return c.json({ error: "User is already logged in" }, 400);
+
+  const user = await db.findFirst<User>({
+    table: "User",
+    where: {
+      email: validated.email,
+    },
+  });
+
+  if (!user) return c.json({ error: "User not found" }, 404);
+
+  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, { expiresIn: "20m" });
+
+  try {
+    await sendEmail(
+      user.email!,
+      "Reset Password",
+      `Click here to reset your password: ${process.env.WEBSITE_URL}/reset-password/${token}`
+    );
+    return c.json({ message: "Email sent" });
+  } catch (error) {
+    console.log(error);
+
+    return c.json({ error: "An error occurred", message: error }, 500);
+  }
+});
+
+router.post("/validate-token", zValidator("query", z.object({ token: z.string().min(25) })), async (c) => {
+  const validated = c.req.valid("query");
+
+  if (!validated) return c.json({ error: "Invalid request" }, 400);
+
+  try {
+    const validJwtToken = (await jwt.verify(validated.token, process.env.JWT_SECRET!)) as { id: number };
+    if (!validJwtToken) return c.json({ error: "Invalid token" }, 400);
+
+    const user = await db.findFirst<User>({
+      table: "User",
+      where: {
+        id: validJwtToken.id,
+      },
+    });
+
+    if (!user) return c.json({ error: "User not found" }, 404);
+
+    return c.json({ message: "Token is valid" });
+  } catch (error) {
+    return c.json({ error: "An error occurred", message: error }, 500);
+  }
+});
+
+router.put("/reset-password", zValidator("json", z.object({ token: z.string().min(25), password: z.string().min(8) })), async (c) => {
+  const validated = c.req.valid("json");
+
+  if (!validated) return c.json({ error: "Invalid request" }, 400);
+
+  try {
+    const validJwtToken = (await jwt.verify(validated.token, process.env.JWT_SECRET!)) as { id: number };
+    if (!validJwtToken) return c.json({ error: "Invalid token" }, 400);
+
+    const user = await db.findFirst<User>({
+      table: "User",
+      where: {
+        id: validJwtToken.id,
+      },
+    });
+
+    if (!user) return c.json({ error: "User not found" }, 404);
+
+    const newPassword = await Bun.password.hash(validated.password);
+
+    await db.update<User>({
+      table: "User",
+      where: {
+        id: user.id,
+      },
+      data: {
+        password: newPassword,
+        updated_at: new Date().toISOString(),
+      },
+    });
+
+    return c.json({ message: "Password reset" });
+  } catch (error) {
+    return c.json({ error: "An error occurred", message: error }, 500);
+  }
+}
 
 router.get("/session", async (c) => {
   const token = getCookie(c, "session_token");

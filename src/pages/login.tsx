@@ -1,7 +1,7 @@
 import React from "react";
 import Container from "../components/Container";
 import { RegisterSchema } from "../../utils/zod";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import useAuth from "../hooks/useAuth";
 import Spinner from "../components/Spinner";
@@ -32,7 +32,7 @@ export default function Login() {
       body: JSON.stringify(parsedData.data),
     });
 
-    if (!response.ok) return console.error("An error occurred");
+    if (!response.ok) return toast.error("An error occurred");
 
     toast.success("Login successful");
     navigate("/dashboard");
@@ -56,6 +56,21 @@ export default function Login() {
         <button type="submit" className="btn btn-neutral btn-sm">
           Login
         </button>
+
+        <p className="text-center">
+          Don't have an account?{" "}
+          <Link className="text-blue-500" to="/register">
+            Register
+          </Link>
+        </p>
+
+        <p className="text-center">
+          Forgot your password?
+          <Link className="text-blue-500" to="/forgot-password">
+            {" "}
+            Reset Password
+          </Link>
+        </p>
       </form>
     </Container>
   );

@@ -4,7 +4,7 @@ import Spinner from "../components/Spinner";
 import toast from "react-hot-toast";
 import useAuth from "../hooks/useAuth";
 import { RegisterSchema } from "../../utils/zod";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -63,6 +63,13 @@ export default function Register() {
         <button type="submit" className="btn btn-neutral btn-sm">
           Register
         </button>
+
+        <p className="text-center">
+          Already have an account?{" "}
+          <Link to="/login" className="text-blue-500">
+            Login
+          </Link>
+        </p>
       </form>
     </Container>
   );
