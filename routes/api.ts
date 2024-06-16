@@ -158,42 +158,41 @@ router.post("/validate-token", zValidator("query", z.object({ token: z.string().
   }
 });
 
-router.put("/reset-password", zValidator("json", z.object({ token: z.string().min(25), password: z.string().min(8) })), async (c) => {
-  const validated = c.req.valid("json");
+// router.put("/reset-password", zValidator("json", z.object({ token: z.string().min(25), password: z.string().min(8) })), async (c) => {
+//   const validated = c.req.valid("json");
 
-  if (!validated) return c.json({ error: "Invalid request" }, 400);
+//   if (!validated) return c.json({ error: "Invalid request" }, 400);
 
-  try {
-    const validJwtToken = (await jwt.verify(validated.token, process.env.JWT_SECRET!)) as { id: number };
-    if (!validJwtToken) return c.json({ error: "Invalid token" }, 400);
+//   try {
+//     const validJwtToken = (await jwt.verify(validated.token, process.env.JWT_SECRET!)) as { id: number };
+//     if (!validJwtToken) return c.json({ error: "Invalid token" }, 400);
 
-    const user = await db.findFirst<User>({
-      table: "User",
-      where: {
-        id: validJwtToken.id,
-      },
-    });
+//     const user = await db.findFirst<User>({
+//       table: "User",
+//       where: {
+//         id: validJwtToken.id,
+//       },
+//     });
 
-    if (!user) return c.json({ error: "User not found" }, 404);
+//     if (!user) return c.json({ error: "User not found" }, 404);
 
-    const newPassword = await Bun.password.hash(validated.password);
+//     const newPassword = await Bun.password.hash(validated.password);
 
-    await db.update<User>({
-      table: "User",
-      where: {
-        id: user.id,
-      },
-      data: {
-        password: newPassword,
-        updated_at: new Date().toISOString(),
-      },
-    });
+//     await db.update<User>({
+//       table: "User",
+//       where: {
+//         id: user.id,
+//       },
+//       data: {
+//         password: newPassword,
+//         updated_at: new Date().toISOString(),
+//       },
+//     });
 
-    return c.json({ message: "Password reset" });
-  } catch (error) {
-    return c.json({ error: "An error occurred", message: error }, 500);
-  }
-}
+//     return c.json({ message: "Password reset" });
+//   } catch (error) {
+//     return c.json({ error: "An error occurred", message: error }, 500);
+//   }
 
 router.get("/session", async (c) => {
   const token = getCookie(c, "session_token");
