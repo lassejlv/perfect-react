@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User } from "../../.prismo/types";
+import { User } from "@prisma/client";
 
 function useAuth() {
   const [user, setUser] = useState<User | null>(null);

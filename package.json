@@ -8,12 +8,14 @@
     "dev:api": "bun --watch app.ts",
     "dev:web": "vite",
     "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
   "dependencies": {
     "@hono/node-server": "^1.11.3",
     "@hono/zod-validator": "^0.2.2",
+    "@libsql/client": "^0.6.2",
+    "@prisma/adapter-libsql": "^5.15.0",
+    "@prisma/client": "5.15.0",
     "@types/node": "^20.14.2",
     "babel-plugin-react-compiler": "^0.0.0-experimental-938cd9a-20240601",
     "daisyui": "^4.12.2",
@@ -45,6 +47,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
     "postcss": "^8.4.38",
+    "prisma": "5.15.0",
     "tailwindcss": "^3.4.4",
     "typescript": "^5.2.2",
     "vite": "^5.2.0"

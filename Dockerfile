@@ -12,6 +12,9 @@ RUN bun install --no-save
 # Build the app
 RUN rm -rf dist && bun run build
 
+# Prisma generate & migrate
+RUN bunx prisma migrate deploy && bunx prisma generate
+
 # Expose the port
 EXPOSE $PORT
 

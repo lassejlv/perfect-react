@@ -1,7 +1,6 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { RegisterSchema } from "../utils/zod";
-import { User } from "../.prismo/types";
 import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import jwt from "jsonwebtoken";
 import db from "../utils/db";
@@ -31,21 +30,20 @@ router.post("/register", zValidator("json", RegisterSchema), async (c) => {
   if (!validated) return c.json({ error: "Invalid request" }, 400);
 
   try {
-    const userExist = await db.findFirst<User>({
-      table: "User",
-      where: { email: validated.email, username: validated.username },
+    const userExists = await db.user.findFirst({
+      where: {
+        email: validated.email,
+        username: validated.username,
+      },
     });
 
-    if (userExist) throw new Error("User already exists");
+    if (userExists) throw new Error("User already exists");
 
-    const newUser = await db.create<User>({
-      table: "User",
+    const newUser = await db.user.create({
       data: {
         email: validated.email,
         username: validated.username,
         password: await Bun.password.hash(validated.password),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
       },
     });
 
@@ -61,16 +59,13 @@ router.post("/login", zValidator("json", RegisterSchema.pick({ email: true, pass
   if (!validated) return c.json({ error: "Invalid request" }, 400);
 
   try {
-    const user = await db.findFirst<User>({
-      table: "User",
-      where: {
-        email: validated.email,
-      },
+    const user = await db.user.findUnique({
+      where: { email: validated.email },
     });
 
     if (!user) throw new Error("User not found");
 
-    const validPassword = await Bun.password.verify(validated.password, user.password!);
+    const validPassword = await Bun.password.verify(validated.password, user.password);
     if (!validPassword) throw new Error("Invalid password");
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, { expiresIn: "7d" });
@@ -109,8 +104,7 @@ router.post("/forgot-password", zValidator("json", RegisterSchema.pick({ email: 
   const session = await auth(c);
   if (session) return c.json({ error: "User is already logged in" }, 400);
 
-  const user = await db.findFirst<User>({
-    table: "User",
+  const user = await db.user.findFirst({
     where: {
       email: validated.email,
     },
@@ -140,14 +134,11 @@ router.post("/validate-token", zValidator("query", z.object({ token: z.string().
   if (!validated) return c.json({ error: "Invalid request" }, 400);
 
   try {
-    const validJwtToken = (await jwt.verify(validated.token, process.env.JWT_SECRET!)) as { id: number };
+    const validJwtToken = (await jwt.verify(validated.token, process.env.JWT_SECRET!)) as { id: string };
     if (!validJwtToken) return c.json({ error: "Invalid token" }, 400);
 
-    const user = await db.findFirst<User>({
-      table: "User",
-      where: {
-        id: validJwtToken.id,
-      },
+    const user = await db.user.findUnique({
+      where: { id: validJwtToken.id },
     });
 
     if (!user) return c.json({ error: "User not found" }, 404);
@@ -158,54 +149,44 @@ router.post("/validate-token", zValidator("query", z.object({ token: z.string().
   }
 });
 
-// router.put("/reset-password", zValidator("json", z.object({ token: z.string().min(25), password: z.string().min(8) })), async (c) => {
-//   const validated = c.req.valid("json");
+router.put("/reset-password", zValidator("json", z.object({ token: z.string(), password: z.string() })), async (c) => {
+  const validated = c.req.valid("json");
+  if (!validated) return c.json({ error: "Invalid request" }, 400);
 
-//   if (!validated) return c.json({ error: "Invalid request" }, 400);
+  try {
+    const validJwtToken = (await jwt.verify(validated.token, process.env.JWT_SECRET!)) as { id: string };
+    if (!validJwtToken) return c.json({ error: "Invalid token" }, 400);
 
-//   try {
-//     const validJwtToken = (await jwt.verify(validated.token, process.env.JWT_SECRET!)) as { id: number };
-//     if (!validJwtToken) return c.json({ error: "Invalid token" }, 400);
+    const user = await db.user.findUnique({
+      where: { id: validJwtToken.id },
+    });
 
-//     const user = await db.findFirst<User>({
-//       table: "User",
-//       where: {
-//         id: validJwtToken.id,
-//       },
-//     });
+    if (!user) return c.json({ error: "User not found" }, 404);
 
-//     if (!user) return c.json({ error: "User not found" }, 404);
+    const hashedPassword = await Bun.password.hash(validated.password);
 
-//     const newPassword = await Bun.password.hash(validated.password);
+    await db.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+      },
+    });
 
-//     await db.update<User>({
-//       table: "User",
-//       where: {
-//         id: user.id,
-//       },
-//       data: {
-//         password: newPassword,
-//         updated_at: new Date().toISOString(),
-//       },
-//     });
-
-//     return c.json({ message: "Password reset" });
-//   } catch (error) {
-//     return c.json({ error: "An error occurred", message: error }, 500);
-//   }
+    return c.json({ message: "Password reset" });
+  } catch (error) {
+    return c.json({ error: "An error occurred", message: error }, 500);
+  }
+});
 
 router.get("/session", async (c) => {
   const token = getCookie(c, "session_token");
   if (!token) return c.json({ error: "Unauthorized" }, 401);
 
-  const validJwtToken = (await jwt.verify(token, process.env.JWT_SECRET!)) as { id: number };
+  const validJwtToken = (await jwt.verify(token, process.env.JWT_SECRET!)) as { id: string };
   if (!validJwtToken) return c.json({ error: "Unauthorized" }, 401);
 
-  const user = await db.findFirst<User>({
-    table: "User",
-    where: {
-      id: validJwtToken.id,
-    },
+  const user = await db.user.findUnique({
+    where: { id: validJwtToken.id },
   });
 
   if (!user) return c.json({ error: "User not found" }, 404);
@@ -217,8 +198,8 @@ router.get("/session", async (c) => {
       email: user.email,
       username: user.username,
       avatar: user.avatar,
-      created_at: user.created_at,
-      updated_at: user.updated_at,
+      created_at: user.createdAt,
+      updated_at: user.updatedAt,
     },
   });
 });

@@ -1,5 +1,5 @@
 import React from "react";
-import { User } from "../../.prismo/types";
+import { User } from "@prisma/client";
 import { Logout } from "../helpers/logout";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -34,7 +34,7 @@ export default function Sidebar({ user, children }: { user: User; children: Reac
         <div className="fixed bottom-0 w-80 p-4 bg-base-200 text-base-content">
           <div className="dropdown dropdown-top">
             <div tabIndex={0} role="button" className="btn btn-active m-1">
-              <img src={user.avatar} alt="avatar" className="w-8 h-8 rounded-full" />
+              <img src={user.avatar!} alt="avatar" className="w-8 h-8 rounded-full" />
               <span>{user.username}</span>
             </div>
             <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
