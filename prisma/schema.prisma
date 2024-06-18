@@ -18,8 +18,21 @@ model User {
   password  String
   verified  Boolean  @default(false)
   avatar    String   @default("/user.png")
+  posts     Post[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("users")
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  User      User?    @relation(fields: [userId], references: [id])
+  userId    String?
+
+  @@map("posts")
 }

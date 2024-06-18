@@ -11,6 +11,7 @@ import Login from "./pages/login.tsx";
 import Dashboard from "./pages/dashboard.tsx";
 import ForgotPassword from "./pages/forgot-password.tsx";
 import ResetPassword from "./pages/reset-password.tsx";
+import Settings from "./pages/settings.tsx";
 
 const routes = createBrowserRouter([
   {
@@ -23,7 +24,13 @@ const routes = createBrowserRouter([
     element: <ForgotPassword />,
   },
   {
+    path: "/dashboard/settings",
+    // @ts-expect-error: Unreachable code error
+    element: <Settings />,
+  },
+  {
     path: "/dashboard",
+    // @ts-expect-error: Unreachable code error
     element: <Dashboard />,
   },
   {

@@ -8,7 +8,7 @@ const config: Config = {
   },
   daisyui: {
     logs: false,
-    themes: ["light"],
+    themes: ["dark"],
   },
   plugins: [daisyui],
 };

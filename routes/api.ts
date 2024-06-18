@@ -187,6 +187,30 @@ router.put("/reset-password", zValidator("json", z.object({ token: z.string(), p
   }
 });
 
+router.put("/update-user", zValidator("json", z.object({ username: z.string().min(3).max(20) })), async (c) => {
+  const validated = c.req.valid("json");
+  if (!validated) return c.json({ error: "Invalid request" }, 400);
+
+  const session = await auth(c);
+  if (!session) return c.json({ error: "Unauthorized" }, 401);
+
+  try {
+    const usernameTaken = await db.user.findFirst({ where: { username: validated.username } });
+    if (usernameTaken) return c.json({ error: "Username is already taken" }, 400);
+
+    await db.user.update({
+      where: { id: session.id },
+      data: {
+        username: validated.username,
+      },
+    });
+
+    return c.json({ message: "User updated" });
+  } catch (error) {
+    return c.json({ error: "An error occurred", message: error }, 500);
+  }
+});
+
 router.get("/verify-email", zValidator("query", z.object({ token: z.string().min(40) })), async (c) => {
   const validated = c.req.valid("query");
   if (!validated) return c.json({ error: "Invalid request" }, 400);

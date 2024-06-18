@@ -1,9 +1,22 @@
 import React from "react";
 import { User } from "@prisma/client";
 import { Logout, VerifyEmail } from "../helpers/logout";
-import { useNavigate } from "react-router-dom";
-import { LogOut, MailWarning } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Gauge, LogOut, MailWarning, Settings } from "lucide-react";
 import toast from "react-hot-toast";
+
+const sidebarItems: { name: string; path: string; icon: React.ReactNode }[] = [
+  {
+    name: "Dashboard",
+    path: "/dashboard",
+    icon: <Gauge className="inline" />,
+  },
+  {
+    name: "Settings",
+    path: "/dashboard/settings",
+    icon: <Settings className="inline" />,
+  },
+];
 
 export default function Sidebar({ user, children }: { user: User; children: React.ReactNode }) {
   const navigate = useNavigate();
@@ -22,14 +35,18 @@ export default function Sidebar({ user, children }: { user: User; children: Reac
       </div>
       <div className="drawer-side">
         <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
-        <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+
+        <ul className="menu p-4 w-80 min-h-full space-y-3 bg-base-200 text-base-content">
+          <h1 className="text-2xl font-bold text-center">Perfect React</h1>
           {/* Sidebar content here */}
-          <li>
-            <a>Sidebar Item 1</a>
-          </li>
-          <li>
-            <a>Sidebar Item 2</a>
-          </li>
+          {sidebarItems.map((item) => (
+            <li>
+              <Link to={item.path} className="text-white">
+                {item.icon}
+                {item.name}
+              </Link>
+            </li>
+          ))}
         </ul>
 
         <div className="fixed bottom-0 w-80 p-4 bg-base-200 text-base-content">
