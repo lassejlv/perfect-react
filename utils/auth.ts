@@ -1,10 +1,10 @@
 import { Context } from "hono";
 import { getCookie } from "hono/cookie";
-import { User } from "../.prismo/types";
 import jwt from "jsonwebtoken";
 import db from "./db";
+import { User } from "@prisma/client";
 
-export const auth = async (c: Context): Promise<boolean> => {
+export const auth = async (c): Promise<User | null> => {
   try {
     const token = await getCookie(c, "session_token");
     if (!token) throw new Error("Unauthorized");
@@ -17,8 +17,8 @@ export const auth = async (c: Context): Promise<boolean> => {
     });
 
     if (!user) throw new Error("User not found");
-    else return true;
+    else return user;
   } catch (error) {
-    return false;
+    return null;
   }
 };
